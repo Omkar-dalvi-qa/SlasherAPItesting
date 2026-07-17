@@ -1,7 +1,10 @@
 import { defineConfig } from '@playwright/test';
-import * as dotenv from 'dotenv';
+import * as fs from 'fs';
+import * as path from 'path';
 
-dotenv.config();
+const cfg = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, 'config.json'), 'utf-8')
+);
 
 export default defineConfig({
   testDir: './tests',
@@ -11,18 +14,16 @@ export default defineConfig({
   reporter: [['list'], ['html', { open: 'never' }]],
   timeout: 30_000,
   use: {
-    baseURL: process.env.SERVER_URL,
+    baseURL: cfg.serverUrl,
     extraHTTPHeaders: {
-      'x-country-code': process.env.X_COUNTRY_CODE ?? '',
+      'x-country-code': cfg.countryCode ?? '',
     },
   },
   projects: [
-    // All normal tests run first in parallel.
     {
       name: 'main',
       testIgnore: /teardown\.spec\.ts/,
     },
-    // Teardown runs after main completes — safe to logout/mutate the current session.
     {
       name: 'teardown',
       testMatch: /teardown\.spec\.ts/,

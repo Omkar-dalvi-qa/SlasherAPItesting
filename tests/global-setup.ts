@@ -1,32 +1,34 @@
-import * as dotenv from 'dotenv';
+import * as fs from 'fs';
+import * as path from 'path';
 
-dotenv.config();
-
+const cfg = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, '../config.json'), 'utf-8')
+);
 
 export default async function globalSetup(): Promise<void> {
-  const serverUrl = process.env.SERVER_URL;
-  const email = process.env.TEST_ACCOUNT_EMAIL;
-  const otp = process.env.TEST_ACCOUNT_OTP;
+  const serverUrl = cfg.serverUrl;
+  const email     = cfg.testAccountEmail;
+  const otp       = cfg.testAccountOtp;
 
   if (!serverUrl || !email || !otp) {
     console.warn(
-      '[global-setup] SERVER_URL / TEST_ACCOUNT_EMAIL / TEST_ACCOUNT_OTP not fully set; ' +
+      '[global-setup] serverUrl / testAccountEmail / testAccountOtp not set in config.json; ' +
         'auth-protected tests will fail until they are.'
     );
     return;
   }
 
-  const version = process.env.API_VERSION ?? 'v1';
-  const langId = process.env.LANG_ID ?? '1';
-  const deviceId = process.env.DEVICE_ID ?? 'playwright-test-device';
+  const version  = cfg.apiVersion ?? 'v1';
+  const langId   = cfg.langId     ?? '1';
+  const deviceId = cfg.deviceId   ?? 'playwright-test-device';
 
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
 
   const deviceInfo = {
-    os: 'Linux',
-    device_name: 'playwright-ci',
-    device_type: 'Automation',
-    app_version: 'playwright-test-runner',
+    os:           'Linux',
+    device_name:  'playwright-ci',
+    device_type:  'Automation',
+    app_version:  'playwright-test-runner',
   };
 
   const loginRegisterUrl = new URL(`${serverUrl}/api/${version}/auth/user/login-register`);
