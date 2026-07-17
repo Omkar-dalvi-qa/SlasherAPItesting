@@ -1,0 +1,10 @@
+{
+  "serverUrl": "https://prod-api.slasherplay.tv",
+  "apiVersion": "v2",
+  "langId": "1",
+  "deviceId": "playwright-test-device",
+  "countryCode": "AE",
+  "testAccountEmail": "testing@gmail.com",
+  "testAccountOtp": "5057",
+  "authToken": ""
+}
