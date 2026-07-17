@@ -37,11 +37,14 @@ mins = int(dur_ms // 60000)
 secs = int((dur_ms % 60000) // 1000)
 duration = f"{mins}m {secs}s" if mins else f"{secs}s"
 
+pass_rate = (passed * 100) // total if total > 0 else 0
+
 print(f"TOTAL={total}")
 print(f"PASSED={passed}")
 print(f"FAILED={failed}")
 print(f"SKIPPED={skipped}")
 print(f"DURATION={duration}")
+print(f"PASSRATE={pass_rate}")
 
 failed_specs = []
 

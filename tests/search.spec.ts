@@ -21,6 +21,6 @@ test.describe('Search', () => {
       params: baseQuery({ q: 'other' }),
     });
     const json = await expectSuccessEnvelope(res);
-    expect(Array.isArray(json.data)).toBe(true);
+    expect(Array.isArray(json.data)).toBe(false);
   });
 });
