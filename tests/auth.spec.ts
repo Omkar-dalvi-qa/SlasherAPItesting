@@ -25,7 +25,7 @@ test.describe('Auth', () => {
   // global-setup.ts saves REFRESH_TOKEN automatically after verify_otp,
   // so this test never skips in Jenkins.
   test('POST /auth/user/refresh-token returns new access token', async ({ request }) => {
-    test.skip(!config.refreshToken, 'REFRESH_TOKEN not set — add TEST_ACCOUNT_EMAIL/OTP so global-setup can mint one');
+    test.skip(!config.refreshToken, 'REFRESH_TOKEN not set — add testAccountEmail/testAccountOtp in config.json so global-setup can mint one');
 
     const res = await request.post(apiPath('/auth/user/refresh-token'), {
       params: baseQuery(),
@@ -39,8 +39,8 @@ test.describe('Auth', () => {
 
   // ── 2. Login flow ────────────────────────────────────────────────────────
   test('POST /auth/user/login-register sends OTP', { tag: '@mutating' }, async ({ request }) => {
-    const email = process.env.TEST_ACCOUNT_EMAIL;
-    test.skip(!email, 'TEST_ACCOUNT_EMAIL not set');
+    const email = config.testAccountEmail;
+    test.skip(!email, 'testAccountEmail not set in config.json');
 
     const res = await request.post(apiPath('/auth/user/login-register'), {
       params: { ...baseQuery(), resend: 'N' },
@@ -61,8 +61,8 @@ test.describe('Auth', () => {
   });
 
   test('POST /auth/user/verify_otp returns error for wrong OTP', async ({ request }) => {
-    const email = process.env.TEST_ACCOUNT_EMAIL;
-    test.skip(!email, 'TEST_ACCOUNT_EMAIL not set');
+    const email = config.testAccountEmail;
+    test.skip(!email, 'testAccountEmail not set in config.json');
 
     const res = await request.post(apiPath('/auth/user/verify_otp'), {
       params: baseQuery(),
@@ -75,8 +75,8 @@ test.describe('Auth', () => {
   });
 
   test('POST /auth/user/is-email-or-mobile-exist returns true for registered email', async ({ request }) => {
-    const email = process.env.TEST_ACCOUNT_EMAIL;
-    test.skip(!email, 'TEST_ACCOUNT_EMAIL not set');
+    const email = config.testAccountEmail;
+    test.skip(!email, 'testAccountEmail not set in config.json');
 
     const res = await request.post(apiPath('/auth/user/is-email-or-mobile-exist'), {
       params: { ...baseQuery(), resend: 'N' },
@@ -88,8 +88,8 @@ test.describe('Auth', () => {
   });
 
   test('POST /auth/user/upsert-user updates user profile', { tag: '@mutating' }, async ({ request }) => {
-    const email = process.env.TEST_ACCOUNT_EMAIL;
-    test.skip(!email, 'TEST_ACCOUNT_EMAIL not set');
+    const email = config.testAccountEmail;
+    test.skip(!email, 'testAccountEmail not set in config.json');
 
     const res = await request.post(apiPath('/auth/user/upsert-user'), {
       params: baseQuery(),
@@ -247,8 +247,8 @@ test.describe('Auth', () => {
   });
 
   test('POST /auth/link-empty-auth-token documents already-linked rejection', { tag: '@mutating' }, async ({ request }) => {
-    const email = process.env.TEST_ACCOUNT_EMAIL;
-    test.skip(!email, 'TEST_ACCOUNT_EMAIL not set');
+    const email = config.testAccountEmail;
+    test.skip(!email, 'testAccountEmail not set in config.json');
 
     const res = await request.post(apiPath('/auth/link-empty-auth-token'), {
       params: baseQuery(),

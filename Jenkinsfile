@@ -11,6 +11,7 @@ pipeline {
     agent any
 
     environment {
+      PATH = "/usr/local/bin:${env.PATH}"
         PLAYWRIGHT_JSON_OUTPUT_NAME = 'test-results/results.json'
         NOTIFY_TO                   = 'omkar.dalvi@enpointe.io'
     }
@@ -79,7 +80,7 @@ pipeline {
 
                 def buildStatus = failed > 0 ? 'FAILED' : 'PASSED'
                 def buildDate   = new Date().format("dd MMM yyyy HH:mm 'UTC'", TimeZone.getTimeZone('UTC'))
-                def passRate    = total > 0 ? Math.round((passed / total) * 100) : 0
+                def passRate    = total > 0 ? (passed * 100).intdiv(total) : 0
 
                 // ── 2. Failed test rows ───────────────────────────────────────
                 def failedRows = ''
