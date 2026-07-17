@@ -1,0 +1,17 @@
+{
+  "name": "slasher-api-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Automated API test suite for the Slasher Postman collection",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "@types/node": "^20.14.9",
+    "dotenv": "^16.4.5",
+    "typescript": "^5.5.4"
+  }
+}
