@@ -11,12 +11,18 @@ let _fileToken = '';
 let _fileRefresh = '';
 try {
   const authFile = path.resolve(process.cwd(), 'test-results/.auth.json');
+  console.log(`[api.ts] cwd=${process.cwd()} authFile=${authFile} exists=${fs.existsSync(authFile)}`);
   if (fs.existsSync(authFile)) {
     const auth = JSON.parse(fs.readFileSync(authFile, 'utf-8'));
     _fileToken   = auth.authToken    ?? '';
     _fileRefresh = auth.refreshToken ?? '';
+    console.log(`[api.ts] loaded token from file (length=${_fileToken.length})`);
+  } else {
+    console.warn(`[api.ts] auth file NOT found — AUTH_TOKEN will be empty`);
   }
-} catch { /* ignore — token will fall back to empty */ }
+} catch (e) {
+  console.error(`[api.ts] error reading auth file: ${e}`);
+}
 
 export const config = {
   version:          cfg.apiVersion       ?? 'v1',
