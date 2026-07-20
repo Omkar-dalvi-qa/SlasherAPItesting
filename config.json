@@ -3,7 +3,7 @@
   "apiVersion": "v2",
   "langId": "1",
   "deviceId": "playwright-test-device",
-  "countryCode": "AE",
+  "countryCode": "IN",
   "testAccountEmail": "testing@gmail.com",
   "testAccountOtp": "5057",
   "authToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2dpbl91dWlkIjoiOGNmY2NiMDgtMjIyYy00ZDYyLTlhNjQtNjBjNDVkNmQ0NmRmIiwidXNlcl9pZCI6MSwiZGV2aWNlX2lkIjoicGxheXdyaWdodC10ZXN0LWRldmljZSIsImlhdCI6MTc4NDUzOTc0NiwiZXhwIjoxNzg0NjI2MTQ2fQ.b0RciEOyzhEqzkBLCz28t3SfyFdywKYnK--XxDvGFEM",

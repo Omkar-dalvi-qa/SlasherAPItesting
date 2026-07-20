@@ -81,7 +81,7 @@ export default async function globalSetup(): Promise<void> {
 
     const loginRes = await fetch(loginUrl.toString(), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-country-code': countryCode },
       body: JSON.stringify({ email_or_mobile: email, type: 'login', ...deviceInfo }),
     });
     console.log(`[global-setup] login-register → ${loginRes.status}`);
@@ -93,7 +93,7 @@ export default async function globalSetup(): Promise<void> {
 
       const verifyRes = await fetch(verifyUrl.toString(), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-country-code': countryCode },
         body: JSON.stringify({ otp, email_or_mobile: email, device_id: deviceId, ...deviceInfo }),
       });
       console.log(`[global-setup] verify_otp → ${verifyRes.status}`);
