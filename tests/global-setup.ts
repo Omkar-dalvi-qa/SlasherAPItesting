@@ -10,22 +10,43 @@ export default async function globalSetup(): Promise<void> {
   const email     = cfg.testAccountEmail;
   const otp       = cfg.testAccountOtp;
 
+  const version  = cfg.apiVersion ?? 'v1';
+  const langId   = cfg.langId     ?? '1';
+  const deviceId = cfg.deviceId   ?? 'playwright-test-device';
+
   console.log(`[global-setup] cwd=${process.cwd()}`);
   console.log(`[global-setup] serverUrl=${serverUrl} email=${email} otp=${otp ? '***' : '(empty)'}`);
 
-  // If a static fallback token is already set in config.json, write it to the
-  // auth file and skip the login flow entirely.  This lets Jenkins work even
-  // when the server geo-blocks the CI IP, as long as the token is kept fresh.
+  // If a static fallback token is set in config.json, verify it is still valid
+  // before using it.  teardown.spec.ts calls POST /auth/device/logout after
+  // every run which REVOKES the JWT — so we must check, not just assume it works.
+  // If the token is dead we fall through to the OTP flow below.
   if (cfg.authToken) {
-    const authFile = path.resolve(process.cwd(), 'test-results/.auth.json');
-    fs.mkdirSync(path.dirname(authFile), { recursive: true });
-    fs.writeFileSync(authFile, JSON.stringify({
-      authToken:    cfg.authToken,
-      refreshToken: cfg.refreshToken ?? '',
-    }));
-    process.env.AUTH_TOKEN = cfg.authToken;
-    console.log(`[global-setup] using static token from config.json (length=${cfg.authToken.length})`);
-    return;
+    // /user/details does a full DB-session check; /auth/device/current only validates
+    // the JWT signature and returns 200 even after device/logout revokes the session.
+    const checkUrl = new URL(`${serverUrl}/api/${version}/user/details`);
+    checkUrl.searchParams.set('lang_id', langId);
+    checkUrl.searchParams.set('deviceId', deviceId);
+    console.log(`[global-setup] verifying static token against ${checkUrl}`);
+    const checkRes = await fetch(checkUrl.toString(), {
+      headers: {
+        Authorization: cfg.authToken,
+        'x-country-code': cfg.countryCode ?? 'AE',
+      },
+    });
+    console.log(`[global-setup] token check → ${checkRes.status}`);
+    if (checkRes.ok) {
+      const authFile = path.resolve(process.cwd(), 'test-results/.auth.json');
+      fs.mkdirSync(path.dirname(authFile), { recursive: true });
+      fs.writeFileSync(authFile, JSON.stringify({
+        authToken:    cfg.authToken,
+        refreshToken: cfg.refreshToken ?? '',
+      }));
+      process.env.AUTH_TOKEN = cfg.authToken;
+      console.log(`[global-setup] static token is valid — skipping OTP (length=${cfg.authToken.length})`);
+      return;
+    }
+    console.log(`[global-setup] static token rejected (${checkRes.status}) — falling through to OTP`);
   }
 
   if (!serverUrl || !email || !otp) {
@@ -33,10 +54,6 @@ export default async function globalSetup(): Promise<void> {
       '[global-setup] serverUrl / testAccountEmail / testAccountOtp not set in config.json'
     );
   }
-
-  const version  = cfg.apiVersion ?? 'v1';
-  const langId   = cfg.langId     ?? '1';
-  const deviceId = cfg.deviceId   ?? 'playwright-test-device';
 
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
 
