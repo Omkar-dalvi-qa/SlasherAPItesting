@@ -13,6 +13,21 @@ export default async function globalSetup(): Promise<void> {
   console.log(`[global-setup] cwd=${process.cwd()}`);
   console.log(`[global-setup] serverUrl=${serverUrl} email=${email} otp=${otp ? '***' : '(empty)'}`);
 
+  // If a static fallback token is already set in config.json, write it to the
+  // auth file and skip the login flow entirely.  This lets Jenkins work even
+  // when the server geo-blocks the CI IP, as long as the token is kept fresh.
+  if (cfg.authToken) {
+    const authFile = path.resolve(process.cwd(), 'test-results/.auth.json');
+    fs.mkdirSync(path.dirname(authFile), { recursive: true });
+    fs.writeFileSync(authFile, JSON.stringify({
+      authToken:    cfg.authToken,
+      refreshToken: cfg.refreshToken ?? '',
+    }));
+    process.env.AUTH_TOKEN = cfg.authToken;
+    console.log(`[global-setup] using static token from config.json (length=${cfg.authToken.length})`);
+    return;
+  }
+
   if (!serverUrl || !email || !otp) {
     throw new Error(
       '[global-setup] serverUrl / testAccountEmail / testAccountOtp not set in config.json'

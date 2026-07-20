@@ -6,5 +6,5 @@
   "countryCode": "AE",
   "testAccountEmail": "testing@gmail.com",
   "testAccountOtp": "5057",
-  "authToken": ""
+  "authToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2dpbl91dWlkIjoiZDUyY2MxNWYtNmMzMi00Y2YwLTg5MWEtZjFmODZmYjBhMjZlIiwidXNlcl9pZCI6MSwiZGV2aWNlX2lkIjoicGxheXdyaWdodC10ZXN0LWRldmljZSIsImlhdCI6MTc4NDUzNjUxMSwiZXhwIjoxNzg0NjIyOTExfQ.N7RZzIeV3b2Jh96sds0D-NmxOV2440-IbmGUv6vuqAw"
 }
