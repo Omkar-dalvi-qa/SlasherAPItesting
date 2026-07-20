@@ -68,6 +68,16 @@ export default async function globalSetup(): Promise<void> {
     return;
   }
 
+  // Write tokens to a file so Playwright worker processes can read them.
+  // process.env set here is NOT visible to workers (separate process).
+  const authFile = path.resolve(process.cwd(), 'test-results/.auth.json');
+  fs.mkdirSync(path.dirname(authFile), { recursive: true });
+  fs.writeFileSync(authFile, JSON.stringify({
+    authToken:    json.token,
+    refreshToken: json.refresh_token ?? '',
+  }));
+
+  // Also set for the global-setup process itself (teardown, etc.)
   process.env.AUTH_TOKEN = json.token;
   if (json.refresh_token) {
     process.env.REFRESH_TOKEN = json.refresh_token;
