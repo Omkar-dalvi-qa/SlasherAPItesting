@@ -35,7 +35,21 @@ export default async function globalSetup(): Promise<void> {
   // Cheap local expiry check first, then verify the DB session is alive via
   // /user/details (this endpoint is NOT geo-blocked — Jenkins can reach it).
   const existingToken   = (cfg.authToken    ?? '') as string;
-  const existingRefresh = (cfg.refreshToken ?? '') as string;
+
+  // Prefer the refresh token saved by the previous run (.auth.json) over the
+  // one in config.json — it is always the most recently issued token, which
+  // matters when the API rotates refresh tokens on every use.
+  let existingRefresh = (cfg.refreshToken ?? '') as string;
+  try {
+    const authFile = path.resolve(process.cwd(), 'test-results/.auth.json');
+    if (fs.existsSync(authFile)) {
+      const saved = JSON.parse(fs.readFileSync(authFile, 'utf-8'));
+      if (saved.refreshToken) {
+        existingRefresh = saved.refreshToken;
+        console.log(`[global-setup] using refresh token from previous run (.auth.json)`);
+      }
+    }
+  } catch { /* fall back to config.json refresh token */ }
 
   if (existingToken && jwtSecsLeft(existingToken) > 60) {
     const checkUrl = new URL(`${serverUrl}/api/${version}/user/details`);
