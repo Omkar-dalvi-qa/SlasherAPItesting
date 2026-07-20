@@ -37,22 +37,44 @@ export default async function globalSetup(): Promise<void> {
     console.log(`[global-setup] auth file written → ${authFile}`);
   };
 
-  // ── Step 1: check static authToken from config.json ─────────────────────
-  // Decode the JWT locally — no API call, no geo-blocking.
-  // Cloudflare blocks ALL requests from the CI server's country, so calling
-  // /user/details to verify the token would always return 403 in Jenkins even
-  // when the token itself is perfectly valid.
+  // ── Step 1: verify static authToken from config.json ───────────────────
+  // First do a cheap local expiry check (no network).  If the JWT is already
+  // expired there is no point calling the API.  If it looks valid, call
+  // /user/details to confirm the DB session is still alive — the teardown
+  // from the previous run calls /auth/device/logout which revokes the session
+  // even though the JWT itself has not expired yet.
+  // NOTE: Cloudflare geo-blocks /auth/user/login-register and /auth/user/verify_otp
+  // from the Finnish CI IP, but /user/details is NOT geo-blocked (authenticated
+  // endpoints pass through — proved by the 401 responses the tests themselves get).
   if (cfg.authToken) {
     const exp = jwtExp(cfg.authToken);
     const nowSec = Math.floor(Date.now() / 1000);
     const secsLeft = exp - nowSec;
     console.log(`[global-setup] static token exp=${exp} secsLeft=${secsLeft}`);
-    if (secsLeft > 60) {
-      saveTokens(cfg.authToken, cfg.refreshToken ?? '');
-      console.log(`[global-setup] static token valid (${Math.floor(secsLeft / 60)}m left) — done`);
-      return;
+
+    if (secsLeft <= 60) {
+      console.log(`[global-setup] static token expired — trying refresh token`);
+    } else {
+      const checkUrl = new URL(`${serverUrl}/api/${version}/user/details`);
+      checkUrl.searchParams.set('lang_id', langId);
+      checkUrl.searchParams.set('deviceId', deviceId);
+      console.log(`[global-setup] verifying static token session → ${checkUrl}`);
+      const checkRes = await fetch(checkUrl.toString(), {
+        headers: {
+          Authorization:    cfg.authToken,
+          'x-country-code': cfg.countryCode ?? 'AE',
+        },
+      });
+      console.log(`[global-setup] static token check → ${checkRes.status}`);
+      if (checkRes.ok) {
+        saveTokens(cfg.authToken, cfg.refreshToken ?? '');
+        console.log(`[global-setup] static token valid — done (${Math.floor(secsLeft / 60)}m left)`);
+        return;
+      }
+      // 401 = session revoked by teardown (JWT not expired but DB session dead)
+      // 403 = geo-blocked (shouldn't happen for this endpoint, but handle gracefully)
+      console.log(`[global-setup] static token rejected (${checkRes.status}) — trying refresh token`);
     }
-    console.log(`[global-setup] static token expired or expiring soon — trying refresh token next`);
   }
 
   // ── Step 2: use refresh token to mint a new access token ────────────────
