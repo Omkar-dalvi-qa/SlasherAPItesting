@@ -3,7 +3,7 @@
   "apiVersion": "v2",
   "langId": "1",
   "deviceId": "playwright-test-device",
-  "countryCode": "IN",
+  "countryCode": "BH",
   "testAccountEmail": "testing@gmail.com",
   "testAccountOtp": "5057",
   "authToken": "",
