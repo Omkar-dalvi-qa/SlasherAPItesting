@@ -36,9 +36,10 @@ export default async function globalSetup(): Promise<void> {
   // /user/details (this endpoint is NOT geo-blocked — Jenkins can reach it).
   const existingToken   = (cfg.authToken    ?? '') as string;
 
-  // Prefer the refresh token saved by the previous run (.auth.json) over the
-  // one in config.json — it is always the most recently issued token, which
-  // matters when the API rotates refresh tokens on every use.
+  // Prefer refresh token in this priority order:
+  //   1. REFRESH_TOKEN env var (Jenkins secret credential — survives workspace rebuilds)
+  //   2. .auth.json from previous run (rotated token from last successful run)
+  //   3. config.json (manual seed; normally empty for security)
   let existingRefresh = (cfg.refreshToken ?? '') as string;
   try {
     const authFile = path.resolve(process.cwd(), 'test-results/.auth.json');
@@ -50,6 +51,10 @@ export default async function globalSetup(): Promise<void> {
       }
     }
   } catch { /* fall back to config.json refresh token */ }
+  if (process.env.REFRESH_TOKEN) {
+    existingRefresh = process.env.REFRESH_TOKEN;
+    console.log(`[global-setup] using refresh token from REFRESH_TOKEN env var`);
+  }
 
   if (existingToken && jwtSecsLeft(existingToken) > 60) {
     const checkUrl = new URL(`${serverUrl}/api/${version}/user/details`);

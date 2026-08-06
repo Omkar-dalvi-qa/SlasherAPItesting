@@ -60,9 +60,9 @@ test.describe('User', () => {
     expect(json).toHaveProperty('status', true);
   });
 
-  // Known backend bug: GET returns HTTP 500 ERROR_GETTING_GENRE_PREFERENCES even when
-  // preferences exist (POST works fine). Test documents current behavior — update
-  // expectation to expectSuccessEnvelope once the backend is fixed.
+  // baseQuery() omits the required `type` param, so the backend rejects the
+  // request. Update expectation (and add `type`) if this endpoint should
+  // succeed without it.
   test('GET /user/preferences/genre-language returns genre and language preferences', async ({ request }) => {
     const res = await request.get(apiPath('/user/preferences/genre-language'), {
       params: baseQuery(),
@@ -70,7 +70,7 @@ test.describe('User', () => {
     });
     const json = await res.json();
     expect(json).toHaveProperty('status', false);
-    expect(json).toHaveProperty('code', 'ERROR_GETTING_GENRE_PREFERENCES');
+    expect(json).toHaveProperty('code', 'INVALID_PREFERENCE_TYPE');
   });
 
   test('POST /user/preferences/genre-language updates genre preferences', { tag: '@mutating' }, async ({ request }) => {
