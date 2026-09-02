@@ -34,7 +34,9 @@ export default async function globalSetup(): Promise<void> {
   // ── Step 1: existing token still valid? ─────────────────────────────────
   // Cheap local expiry check first, then verify the DB session is alive via
   // /user/details (this endpoint is NOT geo-blocked — Jenkins can reach it).
-  const existingToken   = (cfg.authToken    ?? '') as string;
+  // AUTH_TOKEN env var (Jenkins Secret credential) wins over config.json so a
+  // locally-minted token can be handed to geo-blocked CI without committing it.
+  const existingToken   = (process.env.AUTH_TOKEN ?? cfg.authToken ?? '') as string;
 
   // Prefer refresh token in this priority order:
   //   1. REFRESH_TOKEN env var (Jenkins secret credential — survives workspace rebuilds)
